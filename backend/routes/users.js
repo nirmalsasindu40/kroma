@@ -26,30 +26,4 @@ router.get('/', protect, adminOnly, async (req, res) => {
   }
 });
 
-// PATCH /api/users/:id/role — admin only: promote or demote a user.
-// This is how new admins should be created after the first one exists —
-// no direct database access needed.
-router.patch('/:id/role', protect, adminOnly, async (req, res) => {
-  try {
-    const { role } = req.body;
-    if (!['customer', 'admin'].includes(role)) {
-      return res.status(400).json({ message: "Role must be 'customer' or 'admin'." });
-    }
-    if (req.user.id === req.params.id && role !== 'admin') {
-      return res.status(400).json({ message: 'You cannot remove your own admin access.' });
-    }
-
-    const user = await User.findByIdAndUpdate(
-      req.params.id,
-      { role },
-      { new: true }
-    ).select('-password');
-
-    if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json({ user });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
 export default router;

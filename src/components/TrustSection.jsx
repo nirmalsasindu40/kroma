@@ -1,7 +1,7 @@
 const items = [
   {
     title: 'Free Shipping',
-    desc: 'On all orders over $75',
+    desc: 'On all orders over Rs. 10,000',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
         <rect x="1" y="7" width="14" height="10" rx="1" />

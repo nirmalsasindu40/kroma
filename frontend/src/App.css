@@ -200,9 +200,16 @@
 .navbar .container {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 32px;
   padding-top: 16px;
   padding-bottom: 16px;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 32px;
 }
 
 .logo {
@@ -219,35 +226,6 @@
 .logo .dot-cluster span {
   width: 8px;
   height: 8px;
-}
-
-.navbar-search {
-  flex: 1;
-  max-width: 460px;
-  position: relative;
-}
-
-.navbar-search input {
-  width: 100%;
-  padding: 11px 16px 11px 42px;
-  border: 1px solid var(--color-line);
-  border-radius: var(--radius-sm);
-  background: var(--color-white);
-  font-size: 14px;
-  font-family: var(--font-body);
-}
-
-.navbar-search input:focus {
-  border-color: var(--color-ink);
-  outline: none;
-}
-
-.navbar-search svg {
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--color-text-muted);
 }
 
 .navbar-links {
@@ -308,7 +286,6 @@
 }
 
 @media (max-width: 900px) {
-  .navbar-search,
   .navbar-links {
     display: none;
   }

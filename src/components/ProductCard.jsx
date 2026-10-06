@@ -1,3 +1,5 @@
+import { formatPrice } from '../utils/currency';
+
 export default function ProductCard({ product, onAddToCart }) {
   const { name, category, price, image, tag } = product;
 
@@ -28,7 +30,7 @@ export default function ProductCard({ product, onAddToCart }) {
         <h3 className="product-name">{name}</h3>
 
         <div className="product-footer">
-          <span className="product-price">${price.toFixed(2)}</span>
+          <span className="product-price">{formatPrice(price)}</span>
           <button
             className="product-cart-btn"
             aria-label={`Add ${name} to cart`}

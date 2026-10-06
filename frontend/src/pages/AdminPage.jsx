@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getProducts, resolveImageUrl } from '../services/api';
 import { createProduct, updateProduct, deleteProduct } from '../services/adminApi';
+import { formatPrice } from '../utils/currency';
 
 const emptyForm = { name: '', category: '', price: '', tag: '' };
 
@@ -112,10 +113,12 @@ export default function AdminPage() {
               />
             </label>
             <label>
-              Price
+              Price (Rs.)
               <input
                 type="number"
-                step="0.01"
+                step="any"
+                min="0"
+                placeholder="e.g. 2500"
                 required
                 value={form.price}
                 onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -158,7 +161,7 @@ export default function AdminPage() {
                     <th>Image</th>
                     <th>Name</th>
                     <th>Category</th>
-                    <th>Price</th>
+                    <th>Price (Rs.)</th>
                     <th>Tag</th>
                     <th></th>
                   </tr>
@@ -179,7 +182,7 @@ export default function AdminPage() {
                       </td>
                       <td>{p.name}</td>
                       <td>{p.category}</td>
-                      <td>${p.price.toFixed(2)}</td>
+                      <td>{formatPrice(p.price)}</td>
                       <td>{p.tag || '—'}</td>
                       <td className="admin-table-actions">
                         <button type="button" onClick={() => handleEdit(p)}>

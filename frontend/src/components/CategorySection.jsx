@@ -53,7 +53,13 @@ const categories = [
   },
 ];
 
-export default function CategorySection() {
+export default function CategorySection({ onSelectCategory }) {
+  const handleClick = (e, categoryName) => {
+    e.preventDefault();
+    onSelectCategory?.(categoryName);
+    document.getElementById('catalog')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section className="categories" id="categories">
       <div className="container">
@@ -66,7 +72,12 @@ export default function CategorySection() {
 
         <div className="category-grid">
           {categories.map((cat) => (
-            <a href="#" className="category-tile" key={cat.name}>
+            <a
+              href="#catalog"
+              className="category-tile"
+              key={cat.name}
+              onClick={(e) => handleClick(e, cat.name)}
+            >
               <span className="category-icon">{cat.icon}</span>
               <span>{cat.name}</span>
             </a>

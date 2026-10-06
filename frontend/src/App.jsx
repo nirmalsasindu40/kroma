@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
@@ -15,6 +16,8 @@ import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import ProfilePage from './pages/ProfilePage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
+import OrderCancelledPage from './pages/OrderCancelledPage';
 import AdminPage from './pages/AdminPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
@@ -22,18 +25,22 @@ import './App.css';
 
 function HomePage() {
   const { addToCart } = useCart();
+  // Lifted here because CategorySection and ProductCatalog are siblings —
+  // clicking a category tile needs to tell the catalog below which
+  // category to pre-filter to.
+  const [selectedCategory, setSelectedCategory] = useState(null);
 
   return (
     <>
       <Hero />
       <Reveal>
-        <CategorySection />
+        <CategorySection onSelectCategory={setSelectedCategory} />
       </Reveal>
       <Reveal>
         <FeaturedProducts onAddToCart={addToCart} />
       </Reveal>
       <Reveal>
-        <ProductCatalog onAddToCart={addToCart} />
+        <ProductCatalog onAddToCart={addToCart} selectedCategory={selectedCategory} />
       </Reveal>
       <Reveal>
         <TrustSection />
@@ -58,6 +65,8 @@ function AppShell() {
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route path="/order-success" element={<OrderSuccessPage />} />
+        <Route path="/order-cancelled" element={<OrderCancelledPage />} />
         <Route
           path="/profile"
           element={

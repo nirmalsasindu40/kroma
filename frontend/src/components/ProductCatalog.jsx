@@ -69,7 +69,7 @@ function isFuzzyMatch(query, text) {
   return levenshtein(q, merged) <= toleranceFor(q.length);
 }
 
-export default function ProductCatalog({ onAddToCart }) {
+export default function ProductCatalog({ onAddToCart, selectedCategory }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -112,7 +112,7 @@ export default function ProductCatalog({ onAddToCart }) {
     [products]
   );
   const PRICE_MAX = useMemo(
-    () => (products.length ? Math.ceil(Math.max(...products.map((p) => p.price))) : 100),
+    () => (products.length ? Math.ceil(Math.max(...products.map((p) => p.price))) : 10000),
     [products]
   );
 
@@ -125,6 +125,14 @@ export default function ProductCatalog({ onAddToCart }) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  // When a Category tile above is clicked, selectedCategory changes —
+  // replace the active filter with just that one category.
+  useEffect(() => {
+    if (selectedCategory) {
+      setActiveCategories([selectedCategory]);
+    }
+  }, [selectedCategory]);
 
   const toggleCategory = (cat) => {
     setActiveCategories((prev) =>
@@ -316,13 +324,14 @@ export default function ProductCatalog({ onAddToCart }) {
             </div>
 
             <div className="filter-group">
-              <h4>Price range</h4>
+              <h4>Price range (Rs.)</h4>
               <div className="price-inputs">
                 <input
                   type="number"
                   min={PRICE_MIN}
                   max={maxPrice}
                   value={minPrice}
+                  placeholder="Min"
                   onChange={(e) => setMinPrice(Number(e.target.value))}
                 />
                 <span>&ndash;</span>
@@ -331,6 +340,7 @@ export default function ProductCatalog({ onAddToCart }) {
                   min={minPrice}
                   max={PRICE_MAX}
                   value={maxPrice}
+                  placeholder="Max"
                   onChange={(e) => setMaxPrice(Number(e.target.value))}
                 />
               </div>

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { uploadDesign } from '../services/api';
+import { initiatePayment } from '../services/paymentApi';
+import { formatLKR, SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '../utils/currency';
 
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
 
@@ -35,8 +37,29 @@ export default function CartPage() {
   }, [user]);
 
   const [checkingOut, setCheckingOut] = useState(false);
-  const [orderPlaced, setOrderPlaced] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
+
+  const orderTotal = cartTotal + (cartTotal >= SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE);
+
+  // Builds a real <form> in memory, fills it with the signed fields the
+  // backend returned, adds it to the page, and submits it — this is the
+  // standard way to redirect the browser to PayHere's hosted checkout
+  // with a POST request (a plain link/fetch can't POST a full-page
+  // navigation the way an actual form submit can).
+  const redirectToPayHere = ({ action, fields }) => {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = action;
+    Object.entries(fields).forEach(([name, value]) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    });
+    document.body.appendChild(form);
+    form.submit();
+  };
 
   const handleCheckout = async () => {
     setCheckoutError('');
@@ -70,36 +93,22 @@ export default function CartPage() {
         )
       );
 
-      clearCart();
-      setOrderPlaced(true);
+      // Cart intentionally isn't cleared here — only once PayHere actually
+      // confirms the payment and the customer lands back on the success
+      // page. If they cancel partway through, their cart is still intact.
+      const itemsSummary = items.map((item) => `${item.name} x${item.quantity}`).join(', ');
+      const payment = await initiatePayment({
+        amount: orderTotal,
+        items: itemsSummary,
+        shipping,
+      });
+      redirectToPayHere(payment);
     } catch (err) {
-      setCheckoutError('Something went wrong saving your order. Please try again.');
+      setCheckoutError(err.message || 'Something went wrong starting checkout. Please try again.');
       console.error(err);
-    } finally {
       setCheckingOut(false);
     }
   };
-
-  if (orderPlaced) {
-    return (
-      <section className="section cart-page">
-        <div className="container">
-          <div className="section-head">
-            <div>
-              <p className="eyebrow">Order confirmed</p>
-              <h2>Thanks — your order is in!</h2>
-            </div>
-          </div>
-          <p className="cart-empty-text">
-            Any custom designs you uploaded have been saved with your order.{' '}
-            <Link to="/#catalog" className="cart-empty-link">
-              Continue shopping
-            </Link>
-          </p>
-        </div>
-      </section>
-    );
-  }
 
   if (items.length === 0) {
     return (
@@ -160,7 +169,7 @@ export default function CartPage() {
                   <div className="cart-row-info">
                     <p className="cart-row-category">{item.category}</p>
                     <h4 className="cart-row-name">{item.name}</h4>
-                    <span className="cart-row-price">${item.price.toFixed(2)} each</span>
+                    <span className="cart-row-price">{formatLKR(item.price)} each</span>
                     {item.customDesign && (
                       <span className="cart-row-custom-badge">Custom design attached</span>
                     )}
@@ -177,7 +186,7 @@ export default function CartPage() {
                   </div>
 
                   <div className="cart-row-subtotal">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    {formatLKR(item.price * item.quantity)}
                   </div>
 
                   <button
@@ -265,15 +274,15 @@ export default function CartPage() {
             <h4>Order summary</h4>
             <div className="cart-summary-row">
               <span>Subtotal</span>
-              <span>${cartTotal.toFixed(2)}</span>
+              <span>{formatLKR(cartTotal)}</span>
             </div>
             <div className="cart-summary-row">
               <span>Shipping</span>
-              <span>{cartTotal >= 75 ? 'Free' : '$5.00'}</span>
+              <span>{cartTotal >= SHIPPING_THRESHOLD ? 'Free' : formatLKR(STANDARD_SHIPPING_FEE)}</span>
             </div>
             <div className="cart-summary-row cart-summary-total">
               <span>Total</span>
-              <span>${(cartTotal + (cartTotal >= 75 ? 0 : 5)).toFixed(2)}</span>
+              <span>{formatLKR(orderTotal)}</span>
             </div>
 
             {checkoutError && <p className="customize-error">{checkoutError}</p>}
