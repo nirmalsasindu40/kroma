@@ -9,6 +9,7 @@ import designRoutes from './routes/designs.js';
 import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import paymentRoutes from './routes/payment.js';
+import orderRoutes from './routes/orders.js';
 
 dotenv.config();
 const app = express();
@@ -28,6 +29,7 @@ app.use('/api/designs', designRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/orders', orderRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

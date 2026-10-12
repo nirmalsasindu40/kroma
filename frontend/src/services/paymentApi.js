@@ -17,3 +17,13 @@ async function request(path, options = {}) {
 // needed to build the hidden form that redirects to PayHere sandbox.
 export const initiatePayment = (payload) =>
   request('/payment/initiate', { method: 'POST', body: JSON.stringify(payload) });
+
+// Called from the order-success page once the customer is redirected back
+// from PayHere — marks the order paid and deducts stock.
+export const confirmPayment = (orderId) =>
+  request('/payment/confirm', { method: 'POST', body: JSON.stringify({ orderId }) });
+
+// Called from the order-cancelled page so an abandoned order is marked
+// cancelled instead of sitting as "pending" forever.
+export const cancelPayment = (orderId) =>
+  request('/payment/cancel', { method: 'POST', body: JSON.stringify({ orderId }) });

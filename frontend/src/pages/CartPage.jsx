@@ -97,10 +97,20 @@ export default function CartPage() {
       // confirms the payment and the customer lands back on the success
       // page. If they cancel partway through, their cart is still intact.
       const itemsSummary = items.map((item) => `${item.name} x${item.quantity}`).join(', ');
+      const cartItems = items.map((item) => ({
+        productId: item.baseProductId || item.id,
+        quantity: item.quantity,
+        // Variant selections (Size/Colour) are attached to the cart item
+        // once the product picker UI is in place; defaults to empty here
+        // so existing cart items without a selection still check out fine.
+        variant: item.variant || {},
+      }));
+
       const payment = await initiatePayment({
-        amount: orderTotal,
         items: itemsSummary,
+        cartItems,
         shipping,
+        shippingCost: cartTotal >= SHIPPING_THRESHOLD ? 0 : STANDARD_SHIPPING_FEE,
       });
       redirectToPayHere(payment);
     } catch (err) {

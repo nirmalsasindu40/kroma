@@ -31,3 +31,30 @@ export async function deleteProduct(id) {
   if (!res.ok) throw new Error(data.message || 'Failed to delete product');
   return data;
 }
+
+async function jsonRequest(path, method, body) {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method,
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.message || 'Request failed');
+  return data;
+}
+
+// Admin view of the catalogue — includes deactivated products, which the
+// public /products endpoint hides from customers.
+export async function getAllProductsAdmin() {
+  const res = await fetch(`${API_BASE}/products/admin/all`, { credentials: 'include' });
+  const data = await res.json().catch(() => ([]));
+  if (!res.ok) throw new Error(data.message || 'Failed to load products');
+  return data;
+}
+
+// Soft-delete (active=false) or restore (active=true) a product.
+export const setProductActive = (id, active) => jsonRequest(`/products/${id}/active`, 'PATCH', { active });
+
+// Update only the stock quantity of a product.
+export const updateProductStock = (id, stock) => jsonRequest(`/products/${id}/stock`, 'PATCH', { stock });
