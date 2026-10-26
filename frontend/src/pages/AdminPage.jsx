@@ -12,6 +12,14 @@ import { formatPrice } from '../utils/currency';
 
 const LOW_STOCK_THRESHOLD = 10;
 const ORDER_STATUSES = ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'];
+const DEFAULT_CATEGORIES = [
+  'T-Shirts',
+  'Mugs',
+  'Phone Cases',
+  'Hoodies',
+  'Tote Bags',
+  'Caps',
+];
 
 const emptyForm = { name: '', category: '', price: '', tag: '', stock: '' };
 
@@ -26,6 +34,9 @@ export default function AdminPage() {
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);
 
+  const [isCustomCategory, setIsCustomCategory] = useState(false);
+  const [customCategory, setCustomCategory] = useState('');
+
   // Variant groups being built for the product form, e.g.
   // [{ name: 'Size', options: ['S','M','L'] }, { name: 'Colour', options: ['Black'] }]
   const [variantGroups, setVariantGroups] = useState([]);
@@ -38,6 +49,14 @@ export default function AdminPage() {
   const [orders, setOrders] = useState([]);
   const [ordersLoading, setOrdersLoading] = useState(true);
   const [ordersError, setOrdersError] = useState('');
+
+  const allCategories = Array.from(
+    new Set([
+      ...DEFAULT_CATEGORIES,
+      ...products.map((p) => p.category).filter(Boolean),
+      ...(form.category && !isCustomCategory ? [form.category] : []),
+    ])
+  );
 
   const loadProducts = () => {
     setLoading(true);
@@ -67,6 +86,8 @@ export default function AdminPage() {
     setVariantGroups([]);
     setGroupName('');
     setGroupOptionsText('');
+    setIsCustomCategory(false);
+    setCustomCategory('');
   };
 
   const handleEdit = (product) => {
@@ -80,6 +101,8 @@ export default function AdminPage() {
     });
     setVariantGroups(product.variants || []);
     setFile(null);
+    setIsCustomCategory(false);
+    setCustomCategory('');
     setTab('products');
   };
 
@@ -300,12 +323,56 @@ export default function AdminPage() {
               </label>
               <label>
                 Category
-                <input
-                  type="text"
-                  required
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                />
+                {!isCustomCategory ? (
+                  <select
+                    required
+                    value={form.category}
+                    onChange={(e) => {
+                      if (e.target.value === '__custom__') {
+                        setIsCustomCategory(true);
+                        setCustomCategory('');
+                        setForm({ ...form, category: '' });
+                      } else {
+                        setForm({ ...form, category: e.target.value });
+                      }
+                    }}
+                  >
+                    <option value="" disabled>
+                      Select a category
+                    </option>
+                    {allCategories.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                    <option value="__custom__">+ Add new category...</option>
+                  </select>
+                ) : (
+                  <div className="admin-custom-category-row">
+                    <input
+                      type="text"
+                      required
+                      placeholder="Enter new category"
+                      value={customCategory}
+                      onChange={(e) => {
+                        setCustomCategory(e.target.value);
+                        setForm({ ...form, category: e.target.value });
+                      }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      className="btn btn-secondary btn-sm"
+                      onClick={() => {
+                        setIsCustomCategory(false);
+                        setCustomCategory('');
+                        setForm({ ...form, category: '' });
+                      }}
+                    >
+                      Choose from list
+                    </button>
+                  </div>
+                )}
               </label>
               <label>
                 Price (Rs.)

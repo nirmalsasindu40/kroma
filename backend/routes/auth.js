@@ -121,13 +121,24 @@ router.post('/forgot-password', async (req, res) => {
       user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
       await user.save();
 
-      const resetUrl = `${process.env.CLIENT_URL}/reset-password/${rawToken}`;
+      // Falls back to the Vite dev address when CLIENT_URL isn't set in .env,
+      // so the link never comes out as "undefined/reset-password/...".
+      const clientUrl = (process.env.CLIENT_URL || 'http://localhost:5173').replace(/\/+$/, '');
+      const resetUrl = `${clientUrl}/reset-password/${rawToken}`;
       try {
-        await sendEmail({
+        const result = await sendEmail({
           to: user.email,
           subject: 'Reset your Kroma password',
           html: passwordResetEmailHtml(resetUrl),
         });
+        if (!result.delivered) {
+          // Development only: no SMTP set up, so show the link here
+          // instead. It never goes back to the browser.
+          console.log(
+            `\n[DEV] SMTP is not configured, so no email was sent.\n` +
+              `Password reset link for ${user.email} (valid 15 minutes):\n${resetUrl}\n`
+          );
+        }
       } catch (emailErr) {
         console.error('Failed to send reset email:', emailErr.message);
       }

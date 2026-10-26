@@ -1,19 +1,33 @@
 import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import CustomizeModal from './CustomizeModal';
 import { formatPrice } from '../utils/currency';
 
 export default function ProductCard({ product, onAddToCart }) {
-  const { name, category, price, image, tag } = product;
+  const { id, name, category, price, image, tag, stock, variants } = product;
   const [showCustomize, setShowCustomize] = useState(false);
+  const navigate = useNavigate();
+
+  const soldOut = typeof stock === 'number' && stock <= 0;
+  // Products with Size/Colour options need those chosen too, which happens
+  // on the product page rather than in the quick-design pop-up.
+  const needsOptions = Array.isArray(variants) && variants.length > 0;
+  const productUrl = `/product/${id}`;
+
+  const handleStart = () => {
+    if (soldOut) return;
+    if (needsOptions) navigate(productUrl);
+    else setShowCustomize(true);
+  };
 
   const handleConfirmDesign = (design) => {
-    onAddToCart?.({ ...product, ...design });
-    setShowCustomize(false);
+    const added = onAddToCart?.({ ...product, ...design });
+    if (added !== false) setShowCustomize(false);
   };
 
   return (
     <div className="product-card">
-      <div className="product-thumb">
+      <Link to={productUrl} className="product-thumb" aria-label={`View ${name}`}>
         {image ? (
           <img src={image} alt={name} />
         ) : (
@@ -24,33 +38,36 @@ export default function ProductCard({ product, onAddToCart }) {
           </svg>
         )}
 
-        {tag && <span className="product-tag">{tag}</span>}
-
-        <button className="product-wishlist" aria-label={`Save ${name}`}>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-            <path d="M12 20s-7-4.35-9.5-9A5.5 5.5 0 0 1 12 6a5.5 5.5 0 0 1 9.5 5c-2.5 4.65-9.5 9-9.5 9z" />
-          </svg>
-        </button>
-      </div>
+        {soldOut ? (
+          <span className="product-tag product-tag-soldout">Out of stock</span>
+        ) : (
+          tag && <span className="product-tag">{tag}</span>
+        )}
+      </Link>
 
       <div className="product-body">
         <p className="product-category">{category}</p>
-        <h3 className="product-name">{name}</h3>
+        <h3 className="product-name">
+          <Link to={productUrl}>{name}</Link>
+        </h3>
 
         <button
           type="button"
           className="product-customize-btn"
-          onClick={() => setShowCustomize(true)}
+          onClick={handleStart}
+          disabled={soldOut}
         >
-          Upload your design
+          {needsOptions ? 'Choose options & design' : 'Upload your design'}
         </button>
 
         <div className="product-footer">
           <span className="product-price">{formatPrice(price)}</span>
           <button
+            type="button"
             className="product-cart-btn"
-            aria-label={`Add ${name} to cart`}
-            onClick={() => onAddToCart?.(product)}
+            aria-label={`Customize and add ${name} to cart`}
+            onClick={handleStart}
+            disabled={soldOut}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M3 4h2l2.4 12.4a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6" />

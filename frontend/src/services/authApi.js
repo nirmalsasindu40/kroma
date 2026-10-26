@@ -33,3 +33,9 @@ export const resetPassword = (token, password) =>
 
 export const updateProfile = (payload) =>
   request('/users/me', { method: 'PUT', body: JSON.stringify(payload) });
+
+export const changePassword = (currentPassword, newPassword) =>
+  request('/users/me/password', {
+    method: 'PUT',
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });

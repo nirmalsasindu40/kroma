@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { changePassword } from '../services/authApi';
 
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
 
@@ -16,6 +17,37 @@ export default function ProfilePage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
+  const [pwError, setPwError] = useState('');
+  const [pwSuccess, setPwSuccess] = useState(false);
+  const [pwSaving, setPwSaving] = useState(false);
+
+  const updatePw = (field) => (e) => {
+    setPw({ ...pw, [field]: e.target.value });
+    setPwSuccess(false);
+  };
+
+  const handlePasswordSubmit = async (e) => {
+    e.preventDefault();
+    setPwError('');
+    setPwSuccess(false);
+
+    if (pw.next !== pw.confirm) {
+      return setPwError('New password and confirmation do not match.');
+    }
+
+    setPwSaving(true);
+    try {
+      await changePassword(pw.current, pw.next);
+      setPw({ current: '', next: '', confirm: '' });
+      setPwSuccess(true);
+    } catch (err) {
+      setPwError(err.message);
+    } finally {
+      setPwSaving(false);
+    }
+  };
 
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
@@ -101,6 +133,51 @@ export default function ProfilePage() {
 
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
+            </button>
+          </form>
+
+          <form className="auth-form auth-password-form" onSubmit={handlePasswordSubmit}>
+            <p className="auth-section-label">Change password</p>
+            <label>
+              Current password
+              <input
+                type="password"
+                autoComplete="current-password"
+                required
+                value={pw.current}
+                onChange={updatePw('current')}
+              />
+            </label>
+            <label>
+              New password
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                value={pw.next}
+                onChange={updatePw('next')}
+              />
+            </label>
+            <label>
+              Confirm new password
+              <input
+                type="password"
+                autoComplete="new-password"
+                required
+                value={pw.confirm}
+                onChange={updatePw('confirm')}
+              />
+            </label>
+            <p className="auth-hint">
+              At least 8 characters, with an uppercase letter, a lowercase letter, a number and a
+              special character.
+            </p>
+
+            {pwError && <p className="customize-error">{pwError}</p>}
+            {pwSuccess && <p className="auth-success">Password changed.</p>}
+
+            <button type="submit" className="btn btn-primary" disabled={pwSaving}>
+              {pwSaving ? 'Updating...' : 'Update Password'}
             </button>
           </form>
 

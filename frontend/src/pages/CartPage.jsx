@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { uploadDesign } from '../services/api';
@@ -9,6 +9,7 @@ import { formatLKR, SHIPPING_THRESHOLD, STANDARD_SHIPPING_FEE } from '../utils/c
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
 
 export default function CartPage() {
+  const navigate = useNavigate();
   const { items, removeFromCart, increaseQty, decreaseQty, cartTotal, clearCart } = useCart();
   const { user, isAuthenticated } = useAuth();
 
@@ -65,7 +66,7 @@ export default function CartPage() {
     setCheckoutError('');
 
     if (!isAuthenticated) {
-      setCheckoutError('Please log in to complete checkout.');
+      navigate('/login', { state: { from: { pathname: '/cart' } } });
       return;
     }
     if (!shipping.phone || !PHONE_RE.test(shipping.phone)) {
@@ -180,6 +181,13 @@ export default function CartPage() {
                     <p className="cart-row-category">{item.category}</p>
                     <h4 className="cart-row-name">{item.name}</h4>
                     <span className="cart-row-price">{formatLKR(item.price)} each</span>
+                    {item.variant && Object.keys(item.variant).length > 0 && (
+                      <span className="cart-row-variant">
+                        {Object.entries(item.variant)
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(' · ')}
+                      </span>
+                    )}
                     {item.customDesign && (
                       <span className="cart-row-custom-badge">Custom design attached</span>
                     )}

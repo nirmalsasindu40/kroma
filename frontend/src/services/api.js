@@ -6,6 +6,16 @@ export async function getProducts() {
   return res.json();
 }
 
+// One product by id, shaped like the list endpoints (id + resolved image).
+export async function getProduct(id) {
+  const res = await fetch(`${API_BASE}/products/${id}`);
+  if (res.status === 404) throw new Error('Product not found');
+  if (!res.ok) throw new Error('Failed to load product');
+  const p = await res.json();
+  if (!p || p.active === false) throw new Error('Product not found');
+  return { ...p, id: p._id, image: resolveImageUrl(p.image) };
+}
+
 export async function searchProducts(query) {
   if (!query.trim()) return [];
   const res = await fetch(`${API_BASE}/products/search?q=${encodeURIComponent(query)}`);

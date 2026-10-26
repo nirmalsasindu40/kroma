@@ -53,7 +53,10 @@ export default function Navbar({ cartCount = 0 }) {
                 );
               })}
               {isAdmin && (
-                <Link to="/admin" className={location.pathname === '/admin' ? 'active' : ''}>
+                <Link
+                  to="/admin"
+                  className={`navbar-admin-link${location.pathname === '/admin' ? ' active' : ''}`}
+                >
                   Admin
                 </Link>
               )}

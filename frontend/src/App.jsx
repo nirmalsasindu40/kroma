@@ -11,6 +11,8 @@ import TrustSection from './components/TrustSection';
 import Footer from './components/Footer';
 import Reveal from './components/Reveal';
 import CartPage from './pages/CartPage';
+import ProductPage from './pages/ProductPage';
+import CartToast from './components/CartToast';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -60,6 +62,7 @@ function AppShell() {
       <Navbar cartCount={cartCount} />
       <Routes>
         <Route path="/" element={<HomePage />} />
+        <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/cart" element={<CartPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
@@ -84,6 +87,7 @@ function AppShell() {
           }
         />
       </Routes>
+      <CartToast />
     </div>
   );
 }

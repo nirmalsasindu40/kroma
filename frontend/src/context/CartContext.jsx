@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer } from 'react';
+import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react';
 
 const CartContext = createContext(null);
 
@@ -75,7 +75,33 @@ export function CartProvider({ children }) {
     }
   }, [items]);
 
-  const addToCart = (product) => dispatch({ type: 'ADD_ITEM', payload: product });
+  // Short-lived message shown by <CartToast /> so the customer always gets
+  // feedback when they add something (or when an add is refused).
+  const [notice, setNotice] = useState(null);
+  const noticeTimer = useRef(null);
+
+  const showNotice = (type, text) => {
+    clearTimeout(noticeTimer.current);
+    setNotice({ type, text, key: Date.now() });
+    noticeTimer.current = setTimeout(() => setNotice(null), 3500);
+  };
+
+  const dismissNotice = () => {
+    clearTimeout(noticeTimer.current);
+    setNotice(null);
+  };
+
+  // Every product is printed to order, so nothing can go in the cart without
+  // a design image. Returns true when added, false when refused.
+  const addToCart = (product) => {
+    if (!product.customDesign) {
+      showNotice('error', 'Please upload your design before adding this item to the cart.');
+      return false;
+    }
+    dispatch({ type: 'ADD_ITEM', payload: product });
+    showNotice('success', `${product.name} added to your cart`);
+    return true;
+  };
   const removeFromCart = (id) => dispatch({ type: 'REMOVE_ITEM', payload: { id } });
   const increaseQty = (id) => dispatch({ type: 'INCREASE_QTY', payload: { id } });
   const decreaseQty = (id) => dispatch({ type: 'DECREASE_QTY', payload: { id } });
@@ -95,6 +121,8 @@ export function CartProvider({ children }) {
         clearCart,
         cartCount,
         cartTotal,
+        notice,
+        dismissNotice,
       }}
     >
       {children}
