@@ -1,7 +1,9 @@
+
 import { useState } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { CartProvider, useCart } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
+
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import CategorySection from './components/CategorySection';
@@ -10,6 +12,7 @@ import ProductCatalog from './components/ProductCatalog';
 import TrustSection from './components/TrustSection';
 import Footer from './components/Footer';
 import Reveal from './components/Reveal';
+
 import CartPage from './pages/CartPage';
 import ProductPage from './pages/ProductPage';
 import CartToast from './components/CartToast';
@@ -21,32 +24,44 @@ import ProfilePage from './pages/ProfilePage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrderCancelledPage from './pages/OrderCancelledPage';
 import AdminPage from './pages/AdminPage';
+
 import ProtectedRoute from './components/ProtectedRoute';
 import AdminRoute from './components/AdminRoute';
+
+// 3D T-shirt test page
+import Test3DPage from './pages/Test3DPage';
+
 import './App.css';
 
 function HomePage() {
   const { addToCart } = useCart();
-  // Lifted here because CategorySection and ProductCatalog are siblings —
-  // clicking a category tile needs to tell the catalog below which
-  // category to pre-filter to.
+
+  // Selected category is shared between category tiles and product catalog.
   const [selectedCategory, setSelectedCategory] = useState(null);
 
   return (
     <>
       <Hero />
+
       <Reveal>
         <CategorySection onSelectCategory={setSelectedCategory} />
       </Reveal>
+
       <Reveal>
         <FeaturedProducts onAddToCart={addToCart} />
       </Reveal>
+
       <Reveal>
-        <ProductCatalog onAddToCart={addToCart} selectedCategory={selectedCategory} />
+        <ProductCatalog
+          onAddToCart={addToCart}
+          selectedCategory={selectedCategory}
+        />
       </Reveal>
+
       <Reveal>
         <TrustSection />
       </Reveal>
+
       <Reveal>
         <Footer />
       </Reveal>
@@ -60,16 +75,48 @@ function AppShell() {
   return (
     <div className="app">
       <Navbar cartCount={cartCount} />
+
       <Routes>
+        {/* Home page */}
         <Route path="/" element={<HomePage />} />
+
+        {/* 3D T-shirt customizer */}
+        <Route
+          path="/test-3d"
+          element={
+            <ProtectedRoute>
+              <Test3DPage />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Products and cart */}
         <Route path="/product/:id" element={<ProductPage />} />
         <Route path="/cart" element={<CartPage />} />
+
+        {/* Authentication */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
-        <Route path="/order-success" element={<OrderSuccessPage />} />
-        <Route path="/order-cancelled" element={<OrderCancelledPage />} />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPasswordPage />}
+        />
+        <Route
+          path="/reset-password/:token"
+          element={<ResetPasswordPage />}
+        />
+
+        {/* Orders */}
+        <Route
+          path="/order-success"
+          element={<OrderSuccessPage />}
+        />
+        <Route
+          path="/order-cancelled"
+          element={<OrderCancelledPage />}
+        />
+
+        {/* Customer profile */}
         <Route
           path="/profile"
           element={
@@ -78,6 +125,8 @@ function AppShell() {
             </ProtectedRoute>
           }
         />
+
+        {/* Admin dashboard */}
         <Route
           path="/admin"
           element={
@@ -87,6 +136,7 @@ function AppShell() {
           }
         />
       </Routes>
+
       <CartToast />
     </div>
   );

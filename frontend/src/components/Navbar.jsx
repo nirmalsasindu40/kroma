@@ -52,6 +52,12 @@ export default function Navbar({ cartCount = 0 }) {
                   </a>
                 );
               })}
+              <Link
+                to="/test-3d"
+                className={`navbar-3d-link${location.pathname === '/test-3d' ? ' active' : ''}`}
+              >
+                3D Customizer
+              </Link>
               {isAdmin && (
                 <Link
                   to="/admin"
