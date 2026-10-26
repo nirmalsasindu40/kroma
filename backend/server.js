@@ -10,13 +10,22 @@ import authRoutes from './routes/auth.js';
 import userRoutes from './routes/users.js';
 import paymentRoutes from './routes/payment.js';
 import orderRoutes from './routes/orders.js';
+import communityRoutes from './routes/community.js';
 
 dotenv.config();
 const app = express();
+const clientOrigin = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = new Set([clientOrigin]);
+if (process.env.NODE_ENV !== 'production') {
+  allowedOrigins.add('http://localhost:5173');
+  allowedOrigins.add('http://localhost:5174');
+}
 
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      callback(null, origin && allowedOrigins.has(origin) ? origin : clientOrigin);
+    },
     credentials: true,
   })
 );
@@ -30,6 +39,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/community', communityRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)

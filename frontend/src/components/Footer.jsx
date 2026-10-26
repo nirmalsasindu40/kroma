@@ -48,6 +48,8 @@ export default function Footer() {
             <li><a href="#">Track Order</a></li>
             <li><a href="#">Shipping &amp; Returns</a></li>
             <li><a href="#">Design Guidelines</a></li>
+            <li><a href="#faq">Questions &amp; Answers</a></li>
+            <li><a href="#feedback">Customer feedback</a></li>
             <li><a href="#">Contact Us</a></li>
           </ul>
         </div>

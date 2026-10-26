@@ -10,6 +10,7 @@ import CategorySection from './components/CategorySection';
 import FeaturedProducts from './components/FeaturedProducts';
 import ProductCatalog from './components/ProductCatalog';
 import TrustSection from './components/TrustSection';
+import CommunitySections from './components/CommunitySections';
 import Footer from './components/Footer';
 import Reveal from './components/Reveal';
 
@@ -57,6 +58,8 @@ function HomePage() {
           selectedCategory={selectedCategory}
         />
       </Reveal>
+
+      <CommunitySections />
 
       <Reveal>
         <TrustSection />

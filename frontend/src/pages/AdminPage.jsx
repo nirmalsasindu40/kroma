@@ -9,6 +9,7 @@ import {
 } from '../services/adminApi';
 import { getAllOrders, updateOrderStatus } from '../services/orderApi';
 import { formatPrice } from '../utils/currency';
+import AdminFaqManager from '../components/AdminFaqManager';
 
 const LOW_STOCK_THRESHOLD = 10;
 const ORDER_STATUSES = ['pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled'];
@@ -231,6 +232,13 @@ export default function AdminPage() {
             onClick={() => setTab('orders')}
           >
             Orders
+          </button>
+          <button
+            type="button"
+            className={tab === 'faqs' ? 'active' : ''}
+            onClick={() => setTab('faqs')}
+          >
+            Q&amp;A
           </button>
         </div>
 
@@ -627,6 +635,8 @@ export default function AdminPage() {
             )}
           </div>
         )}
+
+        {tab === 'faqs' && <AdminFaqManager />}
       </div>
     </section>
   );
