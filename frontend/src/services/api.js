@@ -6,6 +6,12 @@ export async function getProducts() {
   return res.json();
 }
 
+export async function getPopularProducts() {
+  const res = await fetch(`${API_BASE}/products/popular`);
+  if (!res.ok) throw new Error('Failed to fetch popular products');
+  return res.json();
+}
+
 // One product by id, shaped like the list endpoints (id + resolved image).
 export async function getProduct(id) {
   const res = await fetch(`${API_BASE}/products/${id}`);

@@ -1,20 +1,20 @@
 import { useEffect, useState } from 'react';
 import ProductCard from './ProductCard';
-import { getProducts, resolveImageUrl } from '../services/api';
+import { getPopularProducts, resolveImageUrl } from '../services/api';
 
 export default function FeaturedProducts({ onAddToCart }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    getProducts()
+    getPopularProducts()
       .then((data) => {
         const normalized = data
-          .map((p) => ({ ...p, id: p._id, image: resolveImageUrl(p.image) }))
-          .slice(0, 4);
+          .map((p) => ({ ...p, id: p._id, image: resolveImageUrl(p.image) }));
         setProducts(normalized);
       })
-      .catch((err) => console.error(err))
+      .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   }, []);
 
@@ -33,12 +33,18 @@ export default function FeaturedProducts({ onAddToCart }) {
 
         {loading ? (
           <p>Loading products...</p>
+        ) : error ? (
+          <p>Couldn't load popular products: {error}</p>
         ) : (
-          <div className="product-grid">
-            {products.map((product) => (
-              <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
-            ))}
-          </div>
+          products.length ? (
+            <div className="product-grid">
+              {products.map((product) => (
+                <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} />
+              ))}
+            </div>
+          ) : (
+            <p>No products are available yet.</p>
+          )
         )}
       </div>
     </section>

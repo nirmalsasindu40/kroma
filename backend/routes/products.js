@@ -1,5 +1,6 @@
 import express from 'express';
 import Product from '../models/Product.js';
+import Order from '../models/Order.js';
 import { upload } from '../middleware/upload.js';
 import { protect, adminOnly } from '../middleware/auth.js';
 
@@ -47,6 +48,32 @@ router.get('/search', async (req, res) => {
       (p) => matchesFuzzy(q, p.name) || matchesFuzzy(q, p.category)
     );
     res.json(results.slice(0, 8));
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+router.get('/popular', async (req, res) => {
+  try {
+    const orderCounts = await Order.aggregate([
+      { $match: { status: { $ne: 'cancelled' } } },
+      { $unwind: '$items' },
+      { $match: { 'items.product': { $type: 'objectId' } } },
+      { $group: { _id: { order: '$_id', product: '$items.product' } } },
+      { $group: { _id: '$_id.product', orderCount: { $sum: 1 } } },
+    ]);
+    const countByProductId = new Map(
+      orderCounts.map(({ _id, orderCount }) => [String(_id), orderCount])
+    );
+    const products = await Product.find({ active: { $ne: false } }).lean();
+    const popularProducts = products
+      .map((product) => ({
+        ...product,
+        orderCount: countByProductId.get(String(product._id)) || 0,
+      }))
+      .sort((a, b) => b.orderCount - a.orderCount || a.name.localeCompare(b.name))
+      .slice(0, 4);
+    res.json(popularProducts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

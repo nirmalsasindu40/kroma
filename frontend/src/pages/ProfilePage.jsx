@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { changePassword } from '../services/authApi';
+import { getMyOrders } from '../services/orderApi';
+import { formatPrice } from '../utils/currency';
 
 const PHONE_RE = /^\+?[0-9]{7,15}$/;
 
@@ -22,6 +24,27 @@ export default function ProfilePage() {
   const [pwError, setPwError] = useState('');
   const [pwSuccess, setPwSuccess] = useState(false);
   const [pwSaving, setPwSaving] = useState(false);
+
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(true);
+  const [ordersError, setOrdersError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    getMyOrders()
+      .then((data) => {
+        if (active) setOrders(data);
+      })
+      .catch((err) => {
+        if (active) setOrdersError(err.message);
+      })
+      .finally(() => {
+        if (active) setOrdersLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const updatePw = (field) => (e) => {
     setPw({ ...pw, [field]: e.target.value });
@@ -88,11 +111,12 @@ export default function ProfilePage() {
   return (
     <section className="section auth-page">
       <div className="container auth-container">
-        <div className="auth-card auth-card-wide">
-          <p className="eyebrow">Your account</p>
-          <h2>Profile</h2>
+        <div className="profile-content">
+          <div className="auth-card auth-card-wide">
+            <p className="eyebrow">Your account</p>
+            <h2>Profile</h2>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
+            <form className="auth-form" onSubmit={handleSubmit}>
             <label>
               Email
               <input type="email" value={user?.email || ''} disabled />
@@ -134,9 +158,9 @@ export default function ProfilePage() {
             <button type="submit" className="btn btn-primary" disabled={saving}>
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
-          </form>
+            </form>
 
-          <form className="auth-form auth-password-form" onSubmit={handlePasswordSubmit}>
+            <form className="auth-form auth-password-form" onSubmit={handlePasswordSubmit}>
             <p className="auth-section-label">Change password</p>
             <label>
               Current password
@@ -179,11 +203,61 @@ export default function ProfilePage() {
             <button type="submit" className="btn btn-primary" disabled={pwSaving}>
               {pwSaving ? 'Updating...' : 'Update Password'}
             </button>
-          </form>
+            </form>
 
-          <button type="button" className="btn btn-secondary auth-logout-btn" onClick={logout}>
-            Log Out
-          </button>
+            <button type="button" className="btn btn-secondary auth-logout-btn" onClick={logout}>
+              Log Out
+            </button>
+          </div>
+
+          <section className="profile-orders" aria-labelledby="profile-orders-heading">
+            <div className="profile-orders-heading">
+              <div>
+                <p className="eyebrow">Your purchases</p>
+                <h2 id="profile-orders-heading">Order history</h2>
+              </div>
+            </div>
+
+            {ordersLoading ? (
+              <p className="profile-orders-message">Loading your orders...</p>
+            ) : ordersError ? (
+              <p className="community-error" role="alert">Couldn't load your orders: {ordersError}</p>
+            ) : orders.length === 0 ? (
+              <div className="profile-orders-empty">
+                <p>You haven't placed any orders yet.</p>
+              </div>
+            ) : (
+              <div className="profile-orders-list">
+                {orders.map((order) => (
+                  <article className="profile-order-card" key={order._id}>
+                    <div className="profile-order-heading">
+                      <div>
+                        <h3>Order {order.orderId}</h3>
+                        <time dateTime={order.createdAt}>
+                          Placed {new Date(order.createdAt).toLocaleDateString()}
+                        </time>
+                      </div>
+                      <span className={`status-badge status-${order.status}`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <ul className="profile-order-items">
+                      {order.items.map((item, index) => (
+                        <li key={`${order._id}-${item.name}-${index}`}>
+                          <span>{item.name} × {item.quantity}</span>
+                          <span>{formatPrice(item.price * item.quantity)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="profile-order-total">
+                      <span>{order.status === 'cancelled' ? 'Order total' : 'Total'}</span>
+                      <strong>{formatPrice(order.total)}</strong>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       </div>
     </section>
